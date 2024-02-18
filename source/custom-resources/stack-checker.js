@@ -14,7 +14,7 @@ const { CognitoIdentityProviderClient, DescribeUserPoolCommand } = require("@aws
 const ssm = new SSM(getOptions());
 const cognitoClient = new CognitoIdentityProviderClient(getOptions());
 const CustomResourceHelperFunctions = require('../utils/custom-resource-helper-functions');
-const { AWS_REGION, FIXED_PARAMETERS } = process.env;
+const { AWS_REGION, FIXED_PARAMETERS, ALLOW_MFA } = process.env;
 const fixedParameters = FIXED_PARAMETERS.split(',');
 
 /**
@@ -110,7 +110,7 @@ const checkUserPoolConfig = async (UserPoolId) => {
     const describeUserPoolResponse = await cognitoClient.send(new DescribeUserPoolCommand(describeUserPoolParams));
     console.log(`Describe user pool response: ${JSON.stringify(describeUserPoolResponse, null, 2)}`);
 
-    if (describeUserPoolResponse.UserPool.MfaConfiguration && describeUserPoolResponse.UserPool.MfaConfiguration !== 'OFF') {
+    if (ALLOW_MFA !== 'YES' && describeUserPoolResponse.UserPool.MfaConfiguration && describeUserPoolResponse.UserPool.MfaConfiguration !== 'OFF') {
         throw new Error(`User Pools with MFA enabled are not supported. The user pool\'s MFA configuration is set to ${describeUserPoolResponse.UserPool.MfaConfiguration}`);
     }
 

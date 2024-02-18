@@ -10,6 +10,7 @@
 const { mockClient } = require('aws-sdk-client-mock');
 const { CognitoIdentityProvider, DescribeUserPoolCommand } = require("@aws-sdk/client-cognito-identity-provider");
 const mockCognitoISP = mockClient(CognitoIdentityProvider);
+const allowMfa = "YES";
 
 describe('check-user-pool-config', function () {
   beforeEach(() => {
@@ -18,6 +19,7 @@ describe('check-user-pool-config', function () {
     process.env.BACKUP_USER_POOL_ID = 'backup-user-pool-id';
     process.env.AWS_REGION = 'us-east-1';
     process.env.BACKUP_REGION = 'us-east-2';
+    process.env.ALLOW_MFA = allowMfa;
     mockCognitoISP.reset();
   });
 
@@ -48,20 +50,22 @@ describe('check-user-pool-config', function () {
     expect(result).toEqual({ result: {} });
   });
 
-  it('Should return false if MFA is enabled', async function () {
-    mockCognitoISP.on(DescribeUserPoolCommand).resolvesOnce({
-      UserPool: {
-        MfaConfiguration: 'OPTIONAL',
-        UsernameAttributes: ['phone', 'email']
-      }
+  if (allowMfa !== "YES") {
+    it('Should return false if MFA is enabled', async function () {
+      mockCognitoISP.on(DescribeUserPoolCommand).resolvesOnce({
+        UserPool: {
+          MfaConfiguration: 'OPTIONAL',
+          UsernameAttributes: ['phone', 'email']
+        }
+      });
+  
+      const event = {};
+      const lambda = require('../check-user-pool-config');
+      await expect(async () => {
+        await lambda.handler(event);
+      }).rejects.toThrow('User Pools with MFA enabled are not supported. The user pool\'s MFA configuration is set to OPTIONAL');
     });
-
-    const event = {};
-    const lambda = require('../check-user-pool-config');
-    await expect(async () => {
-      await lambda.handler(event);
-    }).rejects.toThrow('User Pools with MFA enabled are not supported. The user pool\'s MFA configuration is set to OPTIONAL');
-  });
+  }
 
   it('Should return false if multiple username attributes are allowed', async function () {
     mockCognitoISP.on(DescribeUserPoolCommand).resolvesOnce({

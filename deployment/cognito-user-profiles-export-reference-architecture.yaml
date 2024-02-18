@@ -9,7 +9,7 @@
 # author: aws-solutions-builder@
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: (SO0126) - Cognito User Profiles Export Reference Architecture. Version VERSION_PLACEHOLDER
+Description: (TK0001) - Cognito User Profiles Export Reference Architecture. Version VERSION_PLACEHOLDER
 
 Parameters:
   PrimaryUserPoolId:
@@ -33,6 +33,10 @@ Parameters:
     Type: String
     Default: "INFO_AND_ERRORS"
     AllowedValues: ["INFO_AND_ERRORS", "ERRORS_ONLY"]
+  AllowMfa:
+    Type: String
+    Default: 'NO'
+    AllowedValues: ['YES', 'NO']
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -66,8 +70,8 @@ Metadata:
 Mappings:
   Solution:
     Config:
-      SendAnonymousData: "Yes" # change to 'No' to disable the collection of anonymized Operational Metrics for this solution
-      SolutionId: SO0126
+      SendAnonymousData: "No" # change to 'No' to disable the collection of anonymized Operational Metrics for this solution
+      SolutionId: TK0001
       Version: VERSION_PLACEHOLDER
       S3BucketPrefix: BUCKET_NAME_PLACEHOLDER
       S3KeyPrefix: SOLUTION_NAME_PLACEHOLDER/VERSION_PLACEHOLDER
@@ -95,7 +99,7 @@ Resources:
       PointInTimeRecoverySpecification:
         PointInTimeRecoveryEnabled: True
       Tags:
-        - Key: solution-id-SO0126
+        - Key: solution-id-TK0001
           Value: !Sub ${AWS::StackName}-${AWS::Region}
 
   GlobalTableCreator:
@@ -123,7 +127,7 @@ Resources:
           SOLUTION_ID: !FindInMap ["Solution", "Config", "SolutionId"]
           SOLUTION_VERSION: !FindInMap ["Solution", "Config", "Version"]
       Tags:
-        - Key: solution-id-SO0126
+        - Key: solution-id-TK0001
           Value: !Sub ${AWS::StackName}-${AWS::Region}
 
   GlobalTableCreatorRole:
@@ -135,7 +139,7 @@ Resources:
             reason: dynamodb:DescribeLimits cannot have specific resources but requires "*".
     Properties:
       Tags:
-        - Key: solution-id-SO0126
+        - Key: solution-id-TK0001
           Value: !Sub ${AWS::StackName}-${AWS::Region}
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -208,7 +212,7 @@ Resources:
             reason: ReservedConcurrentExecutions is not needed for this Lambda function.
     Properties:
       Tags:
-        - Key: solution-id-SO0126
+        - Key: solution-id-TK0001
           Value: !Sub ${AWS::StackName}-${AWS::Region}
       Description: Secondary user pool table readiness checker
       Code:
@@ -230,7 +234,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       Tags:
-        - Key: solution-id-SO0126
+        - Key: solution-id-TK0001
           Value: !Sub ${AWS::StackName}-${AWS::Region}
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -276,7 +280,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       Tags:
-        - Key: solution-id-SO0126
+        - Key: solution-id-TK0001
           Value: !Sub ${AWS::StackName}-${AWS::Region}
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -302,7 +306,7 @@ Resources:
     Type: AWS::StepFunctions::StateMachine
     Properties:
       Tags:
-        - Key: solution-id-SO0126
+        - Key: solution-id-TK0001
           Value: !Sub ${AWS::StackName}-${AWS::Region}
       RoleArn: !GetAtt SecondaryUserPoolTableStepFunctionsRole.Arn
       DefinitionString: !Sub |
@@ -364,7 +368,7 @@ Resources:
             reason: ReservedConcurrentExecutions is not needed for this Lambda function.
     Properties:
       Tags:
-        - Key: solution-id-SO0126
+        - Key: solution-id-TK0001
           Value: !Sub ${AWS::StackName}-${AWS::Region}
       Description: Checks to see if the current stack update is supported
       Code:
@@ -377,16 +381,17 @@ Resources:
       MemorySize: 128
       Environment:
         Variables:
-          FIXED_PARAMETERS: !Join [ ",", [ SecondaryRegion, PrimaryUserPoolId, BackupTableName, AnonymousDataUUID, ParentStackName, FormattedStackName, PrimaryRegion, ImportNewUsersQueueNamePrefix, SolutionInstanceUUID, UserImportJobMappingFileBucketPrefix, ExportWorkflowQueueNamePrefix ] ]
+          FIXED_PARAMETERS: !Join [ ",", [ SecondaryRegion, PrimaryUserPoolId, BackupTableName, AnonymousDataUUID, ParentStackName, FormattedStackName, PrimaryRegion, ImportNewUsersQueueNamePrefix, SolutionInstanceUUID, UserImportJobMappingFileBucketPrefix, ExportWorkflowQueueNamePrefix, AllowMfa ] ]
           SOLUTION_ID: !FindInMap ["Solution", "Config", "SolutionId"]
           SOLUTION_VERSION: !FindInMap ["Solution", "Config", "Version"]
+          ALLOW_MFA: !Ref AllowMfa
 
   StackCheckerCustomResourceLambdaRole:
     Type: AWS::IAM::Role
     DependsOn: SecondaryUserPoolTable
     Properties:
       Tags:
-        - Key: solution-id-SO0126
+        - Key: solution-id-TK0001
           Value: !Sub ${AWS::StackName}-${AWS::Region}
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -447,6 +452,7 @@ Resources:
       ImportNewUsersQueueNamePrefix: "import-new-users"
       SolutionInstanceUUID: !GetAtt SolutionConstantsCustomResource.SolutionInstanceUUID
       UserImportJobMappingFileBucketPrefix: !GetAtt SolutionConstantsCustomResource.UserImportJobMappingFileBucketPrefix
+      AllowMfa: !Ref AllowMfa
 
   SolutionConstantsCustomResourceLambda:
     Type: AWS::Lambda::Function
@@ -460,7 +466,7 @@ Resources:
             reason: ReservedConcurrentExecutions is not needed for this Lambda function.
     Properties:
       Tags:
-        - Key: solution-id-SO0126
+        - Key: solution-id-TK0001
           Value: !Sub ${AWS::StackName}-${AWS::Region}
       Description: Generates values to be used within the solution
       Code:
@@ -481,7 +487,7 @@ Resources:
     DependsOn: SecondaryUserPoolTable
     Properties:
       Tags:
-        - Key: solution-id-SO0126
+        - Key: solution-id-TK0001
           Value: !Sub ${AWS::StackName}-${AWS::Region}
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -524,7 +530,7 @@ Resources:
             reason: ReservedConcurrentExecutions is not needed for this Lambda function.
     Properties:
       Tags:
-        - Key: solution-id-SO0126
+        - Key: solution-id-TK0001
           Value: !Sub ${AWS::StackName}-${AWS::Region}
       Description: Custom resource to manage the solution's StackSet
       Code:
@@ -550,7 +556,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       Tags:
-        - Key: solution-id-SO0126
+        - Key: solution-id-TK0001
           Value: !Sub ${AWS::StackName}-${AWS::Region}
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -632,7 +638,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       Tags:
-        - Key: solution-id-SO0126
+        - Key: solution-id-TK0001
           Value: !Sub ${AWS::StackName}-${AWS::Region}
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -671,7 +677,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       Tags:
-        - Key: solution-id-SO0126
+        - Key: solution-id-TK0001
           Value: !Sub ${AWS::StackName}-${AWS::Region}
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -823,7 +829,7 @@ Resources:
             reason: ReservedConcurrentExecutions is not needed for this Lambda function.
     Properties:
       Tags:
-        - Key: solution-id-SO0126
+        - Key: solution-id-TK0001
           Value: !Sub ${AWS::StackName}-${AWS::Region}
       Description: Checks the status of the solution's StackSet and when ready, responds to CloudFormation
       Code:
@@ -843,7 +849,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       Tags:
-        - Key: solution-id-SO0126
+        - Key: solution-id-TK0001
           Value: !Sub ${AWS::StackName}-${AWS::Region}
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -882,7 +888,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       Tags:
-        - Key: solution-id-SO0126
+        - Key: solution-id-TK0001
           Value: !Sub ${AWS::StackName}-${AWS::Region}
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -908,7 +914,7 @@ Resources:
     Type: AWS::StepFunctions::StateMachine
     Properties:
       Tags:
-        - Key: solution-id-SO0126
+        - Key: solution-id-TK0001
           Value: !Sub ${AWS::StackName}-${AWS::Region}
       RoleArn: !GetAtt StackSetCheckStatusWorkflowRole.Arn
       DefinitionString: !Sub |

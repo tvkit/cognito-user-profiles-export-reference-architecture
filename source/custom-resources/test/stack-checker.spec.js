@@ -27,10 +27,13 @@ const mockCognito = mockClient(CognitoIdentityProviderClient);
 const CustomResourceHelperFunctions = require('../../utils/custom-resource-helper-functions');
 jest.mock('../../utils/custom-resource-helper-functions');
 
+const allowMfa = "YES"
+
 describe('stack-checker', function () {
     beforeEach(() => {
         process.env.AWS_REGION = 'us-east-1';
-        process.env.FIXED_PARAMETERS = 'SecondaryRegion,PrimaryUserPoolId,BackupTableName,AnonymousDataUUID,ParentStackName,PrimaryRegion,ImportNewUsersQueueNamePrefix,SolutionInstanceUUID,UserImportJobMappingFileBucketPrefix';
+        process.env.FIXED_PARAMETERS = 'SecondaryRegion,PrimaryUserPoolId,BackupTableName,AnonymousDataUUID,ParentStackName,PrimaryRegion,ImportNewUsersQueueNamePrefix,SolutionInstanceUUID,UserImportJobMappingFileBucketPrefix,AllowMfa';
+        process.env.ALLOW_MFA = allowMfa
         mockSSM.reset();
         mockCognito.reset();
     });
@@ -84,32 +87,34 @@ describe('stack-checker', function () {
         }
     });
 
-    it('Create: Throws an error if MFA is enabled', async function () {
-        // Mock event data
-        const event = {
-            ResourceProperties: {
-                StackName: 'stack-name',
-                PrimaryUserPoolId: 'user-pool-id-a'
-            }
-        };
-
-        mockCognito.on(DescribeUserPoolCommand).resolvesOnce({
-            UserPool: {
-                MfaConfiguration: 'OPTIONAL',
-                UsernameAttributes: ['email']
-            }
-        })
-
-
-        CustomResourceHelperFunctions.handler.mockImplementationOnce(async (evt, ctx, handleCreate) => {
-            await handleCreate(evt);
+    if (allowMfa === "NO") {
+        it('Create: Throws an error if MFA is enabled', async function () {
+            // Mock event data
+            const event = {
+                ResourceProperties: {
+                    StackName: 'stack-name',
+                    PrimaryUserPoolId: 'user-pool-id-a'
+                }
+            };
+    
+            mockCognito.on(DescribeUserPoolCommand).resolvesOnce({
+                UserPool: {
+                    MfaConfiguration: 'OPTIONAL',
+                    UsernameAttributes: ['email']
+                }
+            })
+    
+    
+            CustomResourceHelperFunctions.handler.mockImplementationOnce(async (evt, ctx, handleCreate) => {
+                await handleCreate(evt);
+            });
+    
+            const lambda = require('../stack-checker');
+            await expect(async () => {
+                await lambda.handler(event, context);
+            }).rejects.toThrow('User Pools with MFA enabled are not supported. The user pool\'s MFA configuration is set to OPTIONAL');
         });
-
-        const lambda = require('../stack-checker');
-        await expect(async () => {
-            await lambda.handler(event, context);
-        }).rejects.toThrow('User Pools with MFA enabled are not supported. The user pool\'s MFA configuration is set to OPTIONAL');
-    });
+    }
 
     it('Create: Throws an error if more than one username attributes are configured', async function () {
         // Mock event data

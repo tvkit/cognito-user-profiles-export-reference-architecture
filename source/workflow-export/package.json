@@ -23,7 +23,7 @@
     "clean": "rm -rf dist/ node_modules/ coverage/",
     "test": "jest --coverage --silent",
     "package:zip": "cd dist && zip -rq package.zip .",
-    "package:dist": "mkdir dist && rsync -avr ../utils ./dist/ && rsync -avr --exclude=*test* --exclude=*dist* --exclude=*node_modules* ./ ./dist/$npm_package_name && rsync -avr ./node_modules ./dist/$npm_package_name",
+    "package:dist": "mkdir dist && rsync -avr ../utils ./dist/ && rsync -avr --exclude=*test* --exclude=*dist* --exclude=*node_modules* ./ ./dist/workflow-export && rsync -avr ./node_modules ./dist/workflow-export",
     "package": "npm run clean && npm install --production && npm run package:dist && npm run package:zip",
     "build": "npm run clean && npm install"
   }

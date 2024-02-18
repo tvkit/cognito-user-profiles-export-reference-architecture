@@ -6,7 +6,7 @@
     "clean": "rm -rf dist/ node_modules/ coverage/",
     "test": "jest --coverage --silent",
     "package:zip": "cd dist && zip -rq package.zip .",
-    "package:dist": "mkdir dist && rsync -avr ../utils ./dist/ && rsync -avr --exclude=*test* --exclude=*dist* --exclude=*node_modules* ./ ./dist/$npm_package_name && rsync -avr ./node_modules ./dist/$npm_package_name",
+    "package:dist": "mkdir dist && rsync -avr ../utils ./dist/ && rsync -avr --exclude=*test* --exclude=*dist* --exclude=*node_modules* ./ ./dist/workflow-import && rsync -avr ./node_modules ./dist/workflow-import",
     "package": "npm run clean && npm install --production && npm run package:dist && npm run package:zip",
     "build": "npm run clean && npm install"
   },
@@ -23,9 +23,8 @@
     "@aws-sdk/lib-dynamodb": "^3.398.0",
     "@aws-sdk/node-http-handler": "^3.374.0",
     "aws-sdk-client-mock": "^3.0.0",
-    "@aws-sdk/node-http-handler": "^3.374.0",
     "axios-mock-adapter": "^1.19.0",
-    "jest": "^29.7.0"
+        "jest": "^29.7.0"
   },
   "dependencies": {
     "axios": "^0.21.1",

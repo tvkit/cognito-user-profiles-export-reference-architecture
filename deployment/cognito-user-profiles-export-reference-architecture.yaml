@@ -129,6 +129,8 @@ Resources:
       Tags:
         - Key: solution-id-TK0001
           Value: !Sub ${AWS::StackName}-${AWS::Region}
+        - Key: handler
+          Value: global-table-creator
 
   GlobalTableCreatorRole:
     Type: AWS::IAM::Role
@@ -214,6 +216,8 @@ Resources:
       Tags:
         - Key: solution-id-TK0001
           Value: !Sub ${AWS::StackName}-${AWS::Region}
+        - Key: handler
+          Value: global-table-checker
       Description: Secondary user pool table readiness checker
       Code:
         S3Bucket: !Join ["-", [!FindInMap ["Solution", "Config", "S3BucketPrefix"], !Ref "AWS::Region"]]
@@ -370,6 +374,8 @@ Resources:
       Tags:
         - Key: solution-id-TK0001
           Value: !Sub ${AWS::StackName}-${AWS::Region}
+        - Key: handler
+          Value: stack-checker
       Description: Checks to see if the current stack update is supported
       Code:
         S3Bucket: !Join ["-", [!FindInMap ["Solution", "Config", "S3BucketPrefix"], !Ref "AWS::Region"]]
@@ -468,6 +474,8 @@ Resources:
       Tags:
         - Key: solution-id-TK0001
           Value: !Sub ${AWS::StackName}-${AWS::Region}
+        - Key: handler
+          Value: solution-constants
       Description: Generates values to be used within the solution
       Code:
         S3Bucket: !Join ["-", [!FindInMap ["Solution", "Config", "S3BucketPrefix"], !Ref "AWS::Region"]]
@@ -532,6 +540,8 @@ Resources:
       Tags:
         - Key: solution-id-TK0001
           Value: !Sub ${AWS::StackName}-${AWS::Region}
+        - Key: handler
+          Value: stackset-manager
       Description: Custom resource to manage the solution's StackSet
       Code:
         S3Bucket: !Join ["-", [!FindInMap ["Solution", "Config", "S3BucketPrefix"], !Ref "AWS::Region"]]
@@ -831,6 +841,8 @@ Resources:
       Tags:
         - Key: solution-id-TK0001
           Value: !Sub ${AWS::StackName}-${AWS::Region}
+        - Key: handler
+          Value: check-stackset-status
       Description: Checks the status of the solution's StackSet and when ready, responds to CloudFormation
       Code:
         S3Bucket: !Join ["-", [!FindInMap ["Solution", "Config", "S3BucketPrefix"], !Ref "AWS::Region"]]

@@ -642,6 +642,7 @@ Resources:
         NotificationEmail: !Ref NotificationEmail
         SnsPreference: !Ref SnsPreference
         ParentStackName: !Ref AWS::StackName
+        AllowMfa: !Ref AllowMfa
 
   StackSetAdminRole:
     # Gives CloudFormation the permission to assume the StackSetExecRole
